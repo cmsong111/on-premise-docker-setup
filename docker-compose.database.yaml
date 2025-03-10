@@ -1,0 +1,43 @@
+services:
+  mairadb:
+    image: mariadb:latest
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: your_root_password
+      MYSQL_DATABASE: your_database_name
+      MYSQL_USER: your_user_name
+      MYSQL_PASSWORD: your_user_password
+    volumes:
+      - ./mariadb_data:/var/lib/mysql
+    networks:
+      - proxy-network
+  
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - ./redis_data:/data
+    networks:
+      - proxy-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: your_access_key
+      MINIO_ROOT_PASSWORD: your_secret_key
+      MINIO_DOMAIN: your_domain
+      MINIO_BROWSER_REDIRECT_URL : your_redirect_url
+      MINIO_SERVER_URL : your_server_url
+      TZ: Asia/Seoul
+    volumes:
+      - ./minio_data:/data
+    networks:
+      - proxy-network
+networks:
+  proxy-network:
+    driver: bridge
+    external: true

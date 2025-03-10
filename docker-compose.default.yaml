@@ -1,0 +1,50 @@
+services:
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./nginx_data:/data
+      - ./letsencrypt_data:/etc/letsencrypt
+    networks:
+      - proxy-network
+    
+  cloudflare-ddns:
+    image: favonia/cloudflare-ddns:latest
+    network_mode: host
+    restart: always
+    read_only: true
+    cap_drop: [all]
+    security_opt: [no-new-privileges:true]
+    environment:
+      - CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
+      - DOMAINS=example.com,*.example.com,www.example.com
+      - PROXIED=false
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    volumes:
+      - ./portainer_data:/data  
+      - /var/run/docker.sock:/var/run/docker.sock 
+    networks:
+      - proxy-network
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: Asia/Seoul
+      WATCHTOWER_CLEANUP: 'true'
+      WATCHTOWER_POLL_INTERVAL: 300
+    restart: unless-stopped
+
+networks:
+  proxy-network:
+    driver: bridge
+    external: true
